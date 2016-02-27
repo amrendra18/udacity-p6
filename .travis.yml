@@ -1,0 +1,22 @@
+
+language: android
+
+sudo: false
+android:
+  components:
+    - build-tools-23.0.1
+    - android-23
+    - extra-android-m2repository
+    - extra-google-m2repository
+
+os:
+  - linux
+
+before_install:
+  - chmod +x gradlew
+
+script:
+  - ./gradlew clean assembleDebug -xlint
+
+env:
+  - secure: "D9N3tHlAeiXLsfiAOMes7aWLkIzv/+KzpUZKmJKxl2DhFfvIorJOU7J2ztMAqcVn7fTUfRRq8duK+GnG3A7HvzQENT0zGNARUdP0RG1c+g4dTLq9U+yNiKQ9STP+UjOTimYmVGDH3MDOUTZMFNnR5/AurhXV9WwVka/tbw1FLFWbPEtRZTrGApbDGwFSKojBtYgpln7NlswIoOCL+HYxZkjmsy9apz9jl5acImWlfq65OHc6XmCStKZenBCE8FEzPODQf1MOYb9zsM000KPGw+MHk8bPjXQeinGG3AraHXqBcPcOw2qUoU3e+ofnJ/tWSROzYnYI+zR9vlyGtsJqAJHFVYsDPlX1Vy4PV2cJzBJoMwMmnHc7RrRkYb5wH2NF6FcNgvxLnkVcjTMp+EoNFuQRJP2cC/BFbMQeVBCC/uLjjd5eR4+SHY7oEwkWVjSOnOo20IdTJAUIy9hxxGE8w92/aJVCMkvcK4lk2PwUYzGJ3e9v3NspK/hw0rdJknl2GHURaR1QBm2K3EPkmsckKbIZBK6BtcoyCgzvNskXIDJ5xvcH2e2BxYnXwEMfugqhf2WMmvKuA8D/P5Nn1d0vBnFshdggsT+nYR3Jl5uduxJF/xsaaR/5Bfn3173tnAV11pVTGLIIxawGKDeLQY2PNF83yDuY7Fa7T2KIPC0JjCQ="

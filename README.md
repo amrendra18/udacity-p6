@@ -1,5 +1,5 @@
-Advanced Android Sample App
-===================================
+# Sunshine : Weather App [![Build Status](https://travis-ci.org/amrendra18/udacity-p6.svg?branch=master)](https://travis-ci.org/amrendra18/udacity-p6)
+
 
 Synchronizes weather information from OpenWeatherMap on Android Phones and Tablets. Used in the Udacity Advanced Android course.
 
