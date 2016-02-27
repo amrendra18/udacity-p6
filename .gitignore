@@ -1,0 +1,9 @@
+# Gradle files
+.gradle/
+build/
+app/build
+.idea/
+*.iml
+
+# Local configuration file (sdk path, etc)
+local.properties
