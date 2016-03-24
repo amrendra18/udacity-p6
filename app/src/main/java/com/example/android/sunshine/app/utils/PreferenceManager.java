@@ -29,6 +29,10 @@ public class PreferenceManager {
         return mSharedPreferenceMgr;
     }
 
+    public void removeKey(final String key) {
+        mEditor.remove(key).commit();
+    }
+
     public int readValue(final String key, final int defaultValue) {
         return mSharedPreference.getInt(key, defaultValue);
     }

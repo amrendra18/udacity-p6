@@ -91,9 +91,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String INFO_WEATHER = "weatherId";
     private static final String INFO_KEY = "key";
 
-    private static final String LAST_LOW_REPORTED = "last_low_reported";
-    private static final String LAST_HIGH_REPORTED = "last_high_reported";
-    private static final String LAST_WEATHER_REPORTED = "last_weather_reported";
+    public static final String LAST_LOW_REPORTED = "last_low_reported";
+    public static final String LAST_HIGH_REPORTED = "last_high_reported";
+    public static final String LAST_WEATHER_REPORTED = "last_weather_reported";
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN, LOCATION_STATUS_INVALID})
@@ -137,7 +137,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             map.putString(INFO_HIGH, Utility.formatTemperature(getContext(), highTemp));
             map.putString(INFO_LOW, Utility.formatTemperature(getContext(), lowTemp));
             map.putInt(INFO_WEATHER, weatherId);
-
+            Debug.c();
             // to make this data overwrite previous one,
             // there has to be a change, hence using current time
             long time = System.currentTimeMillis();
@@ -148,6 +148,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                         @Override
                         public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
+                            Debug.c();
                             if (!dataItemResult.getStatus().isSuccess()) {
                                 Debug.e("Error: parcel company didnot pickup parcel", false);
                             } else {
