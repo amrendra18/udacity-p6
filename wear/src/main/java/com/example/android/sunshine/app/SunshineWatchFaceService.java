@@ -29,21 +29,40 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 
 import java.lang.ref.WeakReference;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * Digital watch face with seconds. In ambient mode, the seconds aren't displayed. On devices with
  * low-bit ambient mode, the text is drawn without anti-aliasing in ambient mode.
  */
+
+
+/*
+Help taken from
+http://code.tutsplus.com/tutorials/creating-an-android-wear-watch-face--cms-23718
+ */
 public class SunshineWatchFaceService extends CanvasWatchFaceService {
+    public static final String TAG = "wear";
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
 
@@ -83,13 +102,43 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         }
     }
 
-    private class Engine extends CanvasWatchFaceService.Engine {
+
+    private class Engine extends CanvasWatchFaceService.Engine implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        private static final String INFO_FOR_WEAR = "/weather-info-for-wear";
+        private static final String INFO_REQUESTED_BY_WEAR = "/weather-info-requested-by-wear";
+        private static final String INFO_REQUEST_KEY = "request_key";
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
         Paint mTextPaint;
         boolean mAmbient;
         Time mTime;
+
+        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(SunshineWatchFaceService.this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
+
+        private void requestDeviceForWeatherInfo() {
+            PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(INFO_REQUESTED_BY_WEAR);
+            long time = System.currentTimeMillis();
+            putDataMapRequest.getDataMap().putString(INFO_REQUEST_KEY, Long.toString(time));
+            PutDataRequest request = putDataMapRequest.asPutDataRequest();
+
+            Wearable.DataApi.putDataItem(mGoogleApiClient, request)
+                    .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                        @Override
+                        public void onResult(DataApi.DataItemResult dataItemResult) {
+                            if (!dataItemResult.getStatus().isSuccess()) {
+                                Log.e(TAG, "Error: parcel company didnot pickup parcel");
+                            } else {
+                                Log.i(TAG, "data item picked up");
+                            }
+                        }
+                    });
+        }
+
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -294,6 +343,21 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                         - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
             }
+        }
+
+        @Override
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+        }
+
+        @Override
+        public void onConnected(@Nullable Bundle bundle) {
+
+        }
+
+        @Override
+        public void onConnectionSuspended(int i) {
+
         }
     }
 }
