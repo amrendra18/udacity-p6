@@ -139,6 +139,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         // offsets
         float mXOffSetTime;
         float mYOffSetTime;
+        float mXOffSetDate;
+        float mYOffSetDate;
 
         boolean mAmbient;
         boolean mBurnInProtection;
@@ -232,7 +234,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mTextTimeSecPaint = createTextPaint(getColor(R.color.primary_dark), Typeface.DEFAULT);
 
             // date paints
-            mTextDatePaint = createTextPaint(getColor(R.color.digital_text), Typeface.DEFAULT);
+            mTextDatePaint = createTextPaint(getColor(R.color.primary_dark), Typeface.DEFAULT);
 
             // temp high low paints
             mTextTempLowPaint = createTextPaint(getColor(R.color.accent), Typeface.DEFAULT);
@@ -303,16 +305,23 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             // Load resources that have alternate values for round watches.
             Resources resources = SunshineWatchFaceService.this.getResources();
             boolean isRound = insets.isRound();
-            mXOffSetTime = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_time_round : R.dimen.digital_x_offset_time);
             mYOffSetTime = resources.getDimension(isRound
                     ? R.dimen.digital_y_offset_time_round : R.dimen.digital_y_offset_time);
+            mYOffSetDate = resources.getDimension(isRound
+                    ? R.dimen.digital_y_offset_date_round : R.dimen.digital_y_offset_date);
+
+
             float textSizeTime = resources.getDimension(isRound
                     ? R.dimen.digital_text_time_size_round : R.dimen.digital_text_time_size);
+
+            float textSizeDate = resources.getDimension(isRound
+                    ? R.dimen.digital_text_date_size_round : R.dimen.digital_text_date_size);
 
             mTextTimePaint.setTextSize(textSizeTime);
             mTextTimeSecPaint.setTextSize(textSizeTime * 0.6f);
             mTextAmPmPaint.setTextSize(textSizeTime * 0.6f);
+
+            mTextDatePaint.setTextSize(textSizeDate);
         }
 
         @Override
@@ -393,11 +402,15 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             float timeTextLen = mTextTimePaint.measureText(timeText);
             float secTextLen = mTextTimeSecPaint.measureText(secText);
 
-            mXOffSetTime = bounds.centerX() - timeTextLen / 2;
+            mXOffSetTime = bounds.centerX() - timeTextLen / 2 - secTextLen / 4;
             canvas.drawText(timeText, mXOffSetTime, mYOffSetTime, mTextTimePaint);
-            canvas.drawText(secText, mXOffSetTime + timeTextLen + 2, mYOffSetTime,
+            canvas.drawText(secText, mXOffSetTime + timeTextLen + 1, mYOffSetTime,
                     mTextTimeSecPaint);
 
+            String date = "FRI, MAR 25";
+            float timeDateLen = mTextDatePaint.measureText(date);
+            mXOffSetDate = bounds.centerX() - timeDateLen / 2;
+            canvas.drawText(date, mXOffSetDate, mYOffSetDate, mTextDatePaint);
 
         }
 
