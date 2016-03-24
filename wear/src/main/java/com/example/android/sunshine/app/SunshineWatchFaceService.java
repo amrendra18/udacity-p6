@@ -126,11 +126,19 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 /*        Paint mBackgroundPaint;
         Paint mTextPaint;*/
 
-        //paints
+        // paints
         Paint mBackgroundPaint;
         Paint mCurveAreaPaint;
+        Paint mTextTimePaint;
+        Paint mTextAmPmPaint;
+        Paint mTextTimeSecPaint;
         Paint mTextDatePaint;
-        Paint mTextTempPaint;
+        Paint mTextTempHighPaint;
+        Paint mTextTempLowPaint;
+
+        // offsets
+        float mXOffSetTime;
+        float mYOffSetTime;
 
         boolean mAmbient;
         boolean mBurnInProtection;
@@ -195,11 +203,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         };
         int mTapCount;
 
-        float mXOffset;
-        float mYOffset;
-
         /**
-         * Whether the display supports fewer bits for each color in ambient mode. When true, we
+         * Whether the display supports fewer bits for each getColor in ambient mode. When true, we
          * disable anti-aliasing in ambient mode.
          */
         boolean mLowBitAmbient;
@@ -215,19 +220,29 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                     .setAcceptsTapEvents(true)
                     .build());
             Resources resources = SunshineWatchFaceService.this.getResources();
-            mYOffset = resources.getDimension(R.dimen.digital_y_offset);
 
             mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(ContextCompat.getColor(context, R.color.primary_light));
+            mBackgroundPaint.setColor(getColor(R.color.primary_light));
             mCurveAreaPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mCurveAreaPaint.setColor(ContextCompat.getColor(context, R.color.primary_dark));
+            mCurveAreaPaint.setColor(getColor(R.color.primary_dark));
 
-            mTextDatePaint = new Paint();
-            mTextDatePaint = createTextPaint(ContextCompat.getColor(context, R.color.digital_text));
-            mTextTempPaint = new Paint();
-            mTextTempPaint = createTextPaint(ContextCompat.getColor(context, R.color.accent));
+            // time paints
+            mTextTimePaint = createTextPaint(getColor(R.color.primary_dark), Typeface.DEFAULT_BOLD);
+            mTextAmPmPaint = createTextPaint(getColor(R.color.primary_dark), Typeface.DEFAULT);
+            mTextTimeSecPaint = createTextPaint(getColor(R.color.primary_dark), Typeface.DEFAULT);
+
+            // date paints
+            mTextDatePaint = createTextPaint(getColor(R.color.digital_text), Typeface.DEFAULT);
+
+            // temp high low paints
+            mTextTempLowPaint = createTextPaint(getColor(R.color.accent), Typeface.DEFAULT);
+            mTextTempHighPaint = createTextPaint(getColor(R.color.accent), Typeface.DEFAULT);
 
             mTime = new Time();
+        }
+
+        private int getColor(int id) {
+            return ContextCompat.getColor(getApplicationContext(), id);
         }
 
         @Override
@@ -236,10 +251,10 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             super.onDestroy();
         }
 
-        private Paint createTextPaint(int textColor) {
+        private Paint createTextPaint(int textColor, Typeface typeface) {
             Paint paint = new Paint();
             paint.setColor(textColor);
-            paint.setTypeface(NORMAL_TYPEFACE);
+            paint.setTypeface(typeface);
             paint.setAntiAlias(true);
             return paint;
         }
@@ -288,12 +303,16 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             // Load resources that have alternate values for round watches.
             Resources resources = SunshineWatchFaceService.this.getResources();
             boolean isRound = insets.isRound();
-            mXOffset = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
-            float textSize = resources.getDimension(isRound
-                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
+            mXOffSetTime = resources.getDimension(isRound
+                    ? R.dimen.digital_x_offset_time_round : R.dimen.digital_x_offset_time);
+            mYOffSetTime = resources.getDimension(isRound
+                    ? R.dimen.digital_y_offset_time_round : R.dimen.digital_y_offset_time);
+            float textSizeTime = resources.getDimension(isRound
+                    ? R.dimen.digital_text_time_size_round : R.dimen.digital_text_time_size);
 
-            mTextDatePaint.setTextSize(textSize);
+            mTextTimePaint.setTextSize(textSizeTime);
+            mTextTimeSecPaint.setTextSize(textSizeTime * 0.6f);
+            mTextAmPmPaint.setTextSize(textSizeTime * 0.6f);
         }
 
         @Override
@@ -315,8 +334,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
-                    mTextDatePaint.setAntiAlias(!inAmbientMode);
-                    mTextTempPaint.setAntiAlias(!inAmbientMode);
+                    mTextTimePaint.setAntiAlias(!inAmbientMode);
+                    mTextTempLowPaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
             }
@@ -357,17 +376,29 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                 canvas.drawColor(Color.BLACK);
             } else {
                 canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
+                float l = bounds.left - bounds.width() / 2;
+                float t = bounds.centerY() + 20f;
+                float r = bounds.right + bounds.width() / 2;
+                float b = bounds.centerY() + bounds.height();
+                RectF rectF = new RectF(l, t, r, b);
+                canvas.drawArc(rectF, 0, 360, false, mCurveAreaPaint);
             }
 
             // Draw H:MM in ambient mode or H:MM:SS in interactive mode.
             mTime.setToNow();
-            String text = mAmbient
-                    ? String.format("%d:%02d", mTime.hour, mTime.minute)
-                    : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
-            canvas.drawText(text, mXOffset, mYOffset, mTextDatePaint);
+            String timeText = String.format("%d:%02d", mTime.hour, mTime.minute);
 
-            RectF rectF = new RectF(bounds.left-bounds.width()/2, bounds.centerY(), bounds.right+bounds.width()/2, bounds.centerY() + bounds.height());
-            canvas.drawArc(rectF, 0, 360, false, mCurveAreaPaint);
+            String secText = String.format("%02d", mTime.second);
+
+            float timeTextLen = mTextTimePaint.measureText(timeText);
+            float secTextLen = mTextTimeSecPaint.measureText(secText);
+
+            mXOffSetTime = bounds.centerX() - timeTextLen / 2;
+            canvas.drawText(timeText, mXOffSetTime, mYOffSetTime, mTextTimePaint);
+            canvas.drawText(secText, mXOffSetTime + timeTextLen + 2, mYOffSetTime,
+                    mTextTimeSecPaint);
+
+
         }
 
         /**
