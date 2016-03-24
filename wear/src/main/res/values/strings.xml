@@ -1,4 +1,32 @@
 <resources>
-    <string name="app_name">Sunshine:Wear</string>
-    <string name="my_digital_name">Sunshine</string>
+    <string name="app_name" translatable="false">Sunshine:Wear</string>
+    <string name="my_digital_name" translatable="false">Sunshine</string>
+
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+
+    <string-array name="week_array">
+        <item>SUN</item>
+        <item>MON</item>
+        <item>TUE</item>
+        <item>WED</item>
+        <item>THU</item>
+        <item>FRI</item>
+        <item>SAT</item>
+    </string-array>
+
+    <string-array name="month_array">
+        <item>JAN</item>
+        <item>FEB</item>
+        <item>MAR</item>
+        <item>APR</item>
+        <item>MAY</item>
+        <item>JUN</item>
+        <item>JUL</item>
+        <item>AUG</item>
+        <item>SEP</item>
+        <item>OCT</item>
+        <item>NOV</item>
+        <item>DEC</item>
+    </string-array>
 </resources>

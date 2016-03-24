@@ -25,12 +25,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
@@ -121,13 +123,22 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         final Handler mUpdateTimeHandler = new EngineHandler(this);
 
         boolean mRegisteredTimeZoneReceiver = false;
-        Paint mBackgroundPaint;
-        Paint mTextPaint;
-        boolean mAmbient;
+/*        Paint mBackgroundPaint;
+        Paint mTextPaint;*/
 
-        String high = "h";
-        String low = "l";
-        String weatherId = "w";
+        //paints
+        Paint mBackgroundPaint;
+        Paint mCurveAreaPaint;
+        Paint mTextDatePaint;
+        Paint mTextTempPaint;
+
+        boolean mAmbient;
+        boolean mBurnInProtection;
+
+        // temperature strings
+        String high = "0";
+        String low = "0";
+        String weatherId = "0";
 
         Time mTime;
 
@@ -196,7 +207,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
-
+            Context context = getApplicationContext();
             setWatchFaceStyle(new WatchFaceStyle.Builder(SunshineWatchFaceService.this)
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
@@ -207,10 +218,14 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
 
             mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(resources.getColor(R.color.background));
+            mBackgroundPaint.setColor(ContextCompat.getColor(context, R.color.primary_light));
+            mCurveAreaPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mCurveAreaPaint.setColor(ContextCompat.getColor(context, R.color.primary_dark));
 
-            mTextPaint = new Paint();
-            mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mTextDatePaint = new Paint();
+            mTextDatePaint = createTextPaint(ContextCompat.getColor(context, R.color.digital_text));
+            mTextTempPaint = new Paint();
+            mTextTempPaint = createTextPaint(ContextCompat.getColor(context, R.color.accent));
 
             mTime = new Time();
         }
@@ -278,13 +293,14 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             float textSize = resources.getDimension(isRound
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
 
-            mTextPaint.setTextSize(textSize);
+            mTextDatePaint.setTextSize(textSize);
         }
 
         @Override
         public void onPropertiesChanged(Bundle properties) {
             super.onPropertiesChanged(properties);
             mLowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT, false);
+            mBurnInProtection = properties.getBoolean(PROPERTY_BURN_IN_PROTECTION, false);
         }
 
         @Override
@@ -299,7 +315,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
-                    mTextPaint.setAntiAlias(!inAmbientMode);
+                    mTextDatePaint.setAntiAlias(!inAmbientMode);
+                    mTextTempPaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
             }
@@ -347,10 +364,10 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             String text = mAmbient
                     ? String.format("%d:%02d", mTime.hour, mTime.minute)
                     : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
-            canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
+            canvas.drawText(text, mXOffset, mYOffset, mTextDatePaint);
 
-            String text2 = high + " : " + low + " : " + weatherId;
-            canvas.drawText(text2, mXOffset, mYOffset + 20, mTextPaint);
+            RectF rectF = new RectF(bounds.left-bounds.width()/2, bounds.centerY(), bounds.right+bounds.width()/2, bounds.centerY() + bounds.height());
+            canvas.drawArc(rectF, 0, 360, false, mCurveAreaPaint);
         }
 
         /**
