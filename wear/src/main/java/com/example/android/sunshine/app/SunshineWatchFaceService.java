@@ -21,12 +21,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -144,6 +146,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         float mYOffSetDate;
         float mXOffSetWeather;
         float mYOffSetWeather;
+        float mXOffsetIcon;
 
         boolean mAmbient;
         boolean mBurnInProtection;
@@ -151,9 +154,11 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         // temperature strings
         String highArrow;
         String lowArrow;
-        String high = "0";
-        String low = "0";
-        String weatherId = "0";
+        String high;
+        String low;
+        int weatherId = -1;
+
+        Bitmap mWeatherIcon;
 
         Time mTime;
 
@@ -419,7 +424,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             float timeTextLen = mTextTimePaint.measureText(timeText);
             float secTextLen = mTextTimeSecPaint.measureText(secText);
 
-            mXOffSetTime = bounds.centerX() - timeTextLen / 2 - secTextLen / 4;
+            mXOffSetTime = bounds.centerX() - timeTextLen / 2 - secTextLen / 2;
             canvas.drawText(timeText, mXOffSetTime, mYOffSetTime, mTextTimePaint);
             canvas.drawText(secText, mXOffSetTime + timeTextLen + 1, mYOffSetTime,
                     mTextTimeSecPaint);
@@ -432,16 +437,24 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mXOffSetDate = bounds.centerX() - timeDateLen / 2;
             canvas.drawText(date, mXOffSetDate, mYOffSetDate, mTextDatePaint);
 
+            if (mWeatherIcon != null) {
 
-            // draw temp high low text
-            String highWithArrow = highArrow + high;
-            String lowWithArrow = lowArrow + low;
-            float tempTextLenHigh = mTextTempHighPaint.measureText(highWithArrow);
-            float tempTextLenLow = mTextTempLowPaint.measureText(lowWithArrow);
-            mXOffSetWeather = bounds.centerX() - tempTextLenHigh / 2;
-            canvas.drawText(highWithArrow, mXOffSetWeather, mYOffSetWeather, mTextTempHighPaint);
-            canvas.drawText(lowWithArrow, mXOffSetWeather + tempTextLenHigh + 2, mYOffSetWeather,
-                    mTextTempLowPaint);
+                String highWithArrow = highArrow + high;
+                String lowWithArrow = lowArrow + low;
+                float tempTextLenHigh = mTextTempHighPaint.measureText(highWithArrow);
+                float tempTextLenLow = mTextTempLowPaint.measureText(lowWithArrow);
+
+                // draw weather icon
+                mXOffsetIcon = bounds.centerX() - mWeatherIcon.getWidth() / 2 - 1 -
+                        tempTextLenHigh / 2 - tempTextLenLow / 2;
+                canvas.drawBitmap(mWeatherIcon, mXOffsetIcon, mYOffSetWeather - mWeatherIcon.getHeight(), null);
+
+                // draw temp high low text
+                mXOffSetWeather = mXOffsetIcon + mWeatherIcon.getWidth() + 2;
+                canvas.drawText(highWithArrow, mXOffSetWeather, mYOffSetWeather, mTextTempHighPaint);
+                canvas.drawText(lowWithArrow, mXOffSetWeather + tempTextLenHigh + 2, mYOffSetWeather,
+                        mTextTempLowPaint);
+            }
         }
 
         /**
@@ -502,9 +515,19 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                     String path = dataEvent.getDataItem().getUri().getPath();
                     Log.i(TAG, "path : " + path);
                     if (path.equals(INFO_FOR_WEAR)) {
-                        low =  dataMap.getString(INFO_LOW).trim();
-                        high =  dataMap.getString(INFO_HIGH).trim();
-                        weatherId = Integer.toString(dataMap.getInt(INFO_WEATHER));
+                        low = dataMap.getString(INFO_LOW).trim();
+                        high = dataMap.getString(INFO_HIGH).trim();
+                        weatherId = dataMap.getInt(INFO_WEATHER);
+                        int resId = Utils.getWeatherIcon(weatherId);
+                        if (resId != -1) {
+                            Bitmap bitmap = ((BitmapDrawable) ContextCompat.getDrawable
+                                    (getApplicationContext(), resId)).getBitmap();
+                            float orgWidth = bitmap.getWidth();
+                            float orgHeight = bitmap.getHeight();
+                            float finalHeight = mTextTempHighPaint.getTextSize();
+                            float finalWidth = (finalHeight / orgHeight) * orgWidth;
+                            mWeatherIcon = Bitmap.createScaledBitmap(bitmap, (int) finalWidth, (int) finalHeight, true);
+                        }
                         Log.i(TAG, "lowTemp " + low + "highTemp " + high + "weatherId " + weatherId);
                         invalidate();
                     }

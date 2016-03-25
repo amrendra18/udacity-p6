@@ -12,6 +12,6 @@
     <dimen name="digital_text_date_size_round">26dp</dimen>
     <dimen name="digital_y_offset_weather">150dp</dimen>
     <dimen name="digital_y_offset_weather_round">160dp</dimen>
-    <dimen name="digital_text_temp_size">20dp</dimen>
-    <dimen name="digital_text_temp_size_round">25dp</dimen>
+    <dimen name="digital_text_temp_size">25dp</dimen>
+    <dimen name="digital_text_temp_size_round">30dp</dimen>
 </resources>
