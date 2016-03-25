@@ -40,6 +40,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
+import com.example.android.sunshine.app.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -407,7 +408,9 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             canvas.drawText(secText, mXOffSetTime + timeTextLen + 1, mYOffSetTime,
                     mTextTimeSecPaint);
 
-            String date = "FRI, MAR 25";
+            String date = Utils.getDay(getApplicationContext(), mTime.weekDay) + ", " + Utils
+                    .getMonth(getApplicationContext(), mTime.month) + " " + mTime
+                    .monthDay;
             float timeDateLen = mTextDatePaint.measureText(date);
             mXOffSetDate = bounds.centerX() - timeDateLen / 2;
             canvas.drawText(date, mXOffSetDate, mYOffSetDate, mTextDatePaint);
