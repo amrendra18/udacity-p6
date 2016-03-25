@@ -418,7 +418,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mTime.setToNow();
 
             // draw time text
-            String timeText = String.format("%d:%02d", mTime.hour, mTime.minute);
+            String timeText = String.format("%02d:%02d", mTime.hour, mTime.minute);
             String secText = String.format("%02d", mTime.second);
 
             float timeTextLen = mTextTimePaint.measureText(timeText);
