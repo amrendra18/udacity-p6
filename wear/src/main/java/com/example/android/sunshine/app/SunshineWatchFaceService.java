@@ -142,11 +142,15 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         float mYOffSetTime;
         float mXOffSetDate;
         float mYOffSetDate;
+        float mXOffSetWeather;
+        float mYOffSetWeather;
 
         boolean mAmbient;
         boolean mBurnInProtection;
 
         // temperature strings
+        String highArrow;
+        String lowArrow;
         String high = "0";
         String low = "0";
         String weatherId = "0";
@@ -238,10 +242,13 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mTextDatePaint = createTextPaint(getColor(R.color.primary_dark), Typeface.DEFAULT);
 
             // temp high low paints
-            mTextTempLowPaint = createTextPaint(getColor(R.color.accent), Typeface.DEFAULT);
-            mTextTempHighPaint = createTextPaint(getColor(R.color.accent), Typeface.DEFAULT);
+            mTextTempLowPaint = createTextPaint(getColor(R.color.accent), Typeface.DEFAULT_BOLD);
+            mTextTempHighPaint = createTextPaint(getColor(R.color.accent), Typeface.DEFAULT_BOLD);
 
             mTime = new Time();
+
+            lowArrow = getString(R.string.down);
+            highArrow = getString(R.string.up);
         }
 
         private int getColor(int id) {
@@ -310,6 +317,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                     ? R.dimen.digital_y_offset_time_round : R.dimen.digital_y_offset_time);
             mYOffSetDate = resources.getDimension(isRound
                     ? R.dimen.digital_y_offset_date_round : R.dimen.digital_y_offset_date);
+            mYOffSetWeather = resources.getDimension(isRound
+                    ? R.dimen.digital_y_offset_weather_round : R.dimen.digital_y_offset_weather);
 
 
             float textSizeTime = resources.getDimension(isRound
@@ -318,11 +327,17 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             float textSizeDate = resources.getDimension(isRound
                     ? R.dimen.digital_text_date_size_round : R.dimen.digital_text_date_size);
 
+            float textSizeTemp = resources.getDimension(isRound
+                    ? R.dimen.digital_text_temp_size_round : R.dimen.digital_text_temp_size);
+
             mTextTimePaint.setTextSize(textSizeTime);
             mTextTimeSecPaint.setTextSize(textSizeTime * 0.6f);
             mTextAmPmPaint.setTextSize(textSizeTime * 0.6f);
 
             mTextDatePaint.setTextSize(textSizeDate);
+
+            mTextTempHighPaint.setTextSize(textSizeTemp);
+            mTextTempLowPaint.setTextSize(textSizeTemp);
         }
 
         @Override
@@ -396,8 +411,9 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
             // Draw H:MM in ambient mode or H:MM:SS in interactive mode.
             mTime.setToNow();
-            String timeText = String.format("%d:%02d", mTime.hour, mTime.minute);
 
+            // draw time text
+            String timeText = String.format("%d:%02d", mTime.hour, mTime.minute);
             String secText = String.format("%02d", mTime.second);
 
             float timeTextLen = mTextTimePaint.measureText(timeText);
@@ -408,6 +424,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             canvas.drawText(secText, mXOffSetTime + timeTextLen + 1, mYOffSetTime,
                     mTextTimeSecPaint);
 
+            // draw date text
             String date = Utils.getDay(getApplicationContext(), mTime.weekDay) + ", " + Utils
                     .getMonth(getApplicationContext(), mTime.month) + " " + mTime
                     .monthDay;
@@ -415,6 +432,16 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mXOffSetDate = bounds.centerX() - timeDateLen / 2;
             canvas.drawText(date, mXOffSetDate, mYOffSetDate, mTextDatePaint);
 
+
+            // draw temp high low text
+            String highWithArrow = highArrow + high;
+            String lowWithArrow = lowArrow + low;
+            float tempTextLenHigh = mTextTempHighPaint.measureText(highWithArrow);
+            float tempTextLenLow = mTextTempLowPaint.measureText(lowWithArrow);
+            mXOffSetWeather = bounds.centerX() - tempTextLenHigh / 2;
+            canvas.drawText(highWithArrow, mXOffSetWeather, mYOffSetWeather, mTextTempHighPaint);
+            canvas.drawText(lowWithArrow, mXOffSetWeather + tempTextLenHigh + 2, mYOffSetWeather,
+                    mTextTempLowPaint);
         }
 
         /**
@@ -475,8 +502,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                     String path = dataEvent.getDataItem().getUri().getPath();
                     Log.i(TAG, "path : " + path);
                     if (path.equals(INFO_FOR_WEAR)) {
-                        low = dataMap.getString(INFO_LOW);
-                        high = dataMap.getString(INFO_HIGH);
+                        low =  dataMap.getString(INFO_LOW).trim();
+                        high =  dataMap.getString(INFO_HIGH).trim();
                         weatherId = Integer.toString(dataMap.getInt(INFO_WEATHER));
                         Log.i(TAG, "lowTemp " + low + "highTemp " + high + "weatherId " + weatherId);
                         invalidate();

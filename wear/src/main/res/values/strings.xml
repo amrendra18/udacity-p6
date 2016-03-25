@@ -5,6 +5,10 @@
     <string name="am">AM</string>
     <string name="pm">PM</string>
 
+    <!-- up & down arrows for high & low -->
+    <string name="up">\u2191</string>
+    <string name="down">\u2193</string>
+
     <string-array name="week_array">
         <item>SUN</item>
         <item>MON</item>
