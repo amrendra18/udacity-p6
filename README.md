@@ -3,6 +3,16 @@
 
 Synchronizes weather information from OpenWeatherMap on Android Phones and Tablets. Used in the Udacity Advanced Android course.
 
+## Preview
+
+### WatchFaces
+![Preview Image](../master/raw/square-interactive.png) ![Preview Image](../master/raw/square-ambient.png) 
+
+![Preview Image](../master/raw/round-interactive.png) ![Preview Image](../master/raw/round-ambient.png)
+
+### AppDemo
+![Preview Video](../master/raw/sunshine.gif)
+
 Pre-requisites
 --------------
 Android SDK 21 or Higher
@@ -21,6 +31,9 @@ Getting Started
 ---------------
 This sample uses the Gradle build system.  To build this project, use the
 "gradlew build" command or use "Import Project" in Android Studio.
+
+## Add API key
+In app/build.gradle replace **"COPY_YOUR_WEATHER_KEY_HERE"** with your API key 
 
 Support
 -------
