@@ -361,10 +361,42 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
             super.onAmbientModeChanged(inAmbientMode);
+            if (inAmbientMode) {
+                mTextTimePaint.setColor(getColor(R.color.digital_text));
+                mTextTimePaint.setStyle(Paint.Style.STROKE);
+                mTextAmPmPaint.setColor(getColor(R.color.digital_text));
+                mTextAmPmPaint.setStyle(Paint.Style.STROKE);
+                mTextTimeSecPaint.setColor(getColor(R.color.digital_text));
+                mTextTimeSecPaint.setStyle(Paint.Style.STROKE);
+                mTextDatePaint.setColor(getColor(R.color.digital_text));
+                mTextDatePaint.setStyle(Paint.Style.STROKE);
+                mTextTempLowPaint.setColor(getColor(R.color.digital_text));
+                mTextTempLowPaint.setStyle(Paint.Style.STROKE);
+                mTextTempHighPaint.setColor(getColor(R.color.digital_text));
+                mTextTempHighPaint.setStyle(Paint.Style.STROKE);
+            } else {
+                mTextTimePaint.setColor(getColor(R.color.primary_dark));
+                mTextTimePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+                mTextAmPmPaint.setColor(getColor(R.color.primary_dark));
+                mTextAmPmPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+                mTextTimeSecPaint.setColor(getColor(R.color.primary_dark));
+                mTextTimeSecPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+                mTextDatePaint.setColor(getColor(R.color.primary_dark));
+                mTextDatePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+                mTextTempLowPaint.setColor(getColor(R.color.accent));
+                mTextTempLowPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+                mTextTempHighPaint.setColor(getColor(R.color.accent));
+                mTextTempHighPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+            }
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
                     mTextTimePaint.setAntiAlias(!inAmbientMode);
+                    mTextTempLowPaint.setAntiAlias(!inAmbientMode);
+                    mTextTimeSecPaint.setAntiAlias(!inAmbientMode);
+                    mTextAmPmPaint.setAntiAlias(!inAmbientMode);
+                    mTextDatePaint.setAntiAlias(!inAmbientMode);
+                    mTextTempHighPaint.setAntiAlias(!inAmbientMode);
                     mTextTempLowPaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
@@ -392,8 +424,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
                     mTapCount++;
-                    mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
-                            R.color.background : R.color.background2));
+/*                    mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
+                            R.color.background : R.color.background2));*/
                     break;
             }
             invalidate();
@@ -424,10 +456,16 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             float timeTextLen = mTextTimePaint.measureText(timeText);
             float secTextLen = mTextTimeSecPaint.measureText(secText);
 
-            mXOffSetTime = bounds.centerX() - timeTextLen / 2 - secTextLen / 2;
-            canvas.drawText(timeText, mXOffSetTime, mYOffSetTime, mTextTimePaint);
-            canvas.drawText(secText, mXOffSetTime + timeTextLen + 1, mYOffSetTime,
-                    mTextTimeSecPaint);
+            if (isInAmbientMode()) {
+                mXOffSetTime = bounds.centerX() - timeTextLen / 2;
+                canvas.drawText(timeText, mXOffSetTime, mYOffSetTime, mTextTimePaint);
+            } else {
+                mXOffSetTime = bounds.centerX() - timeTextLen / 2 - secTextLen / 2;
+                canvas.drawText(timeText, mXOffSetTime, mYOffSetTime, mTextTimePaint);
+                canvas.drawText(secText, mXOffSetTime + timeTextLen + 1, mYOffSetTime,
+                        mTextTimeSecPaint);
+            }
+
 
             // draw date text
             String date = Utils.getDay(getApplicationContext(), mTime.weekDay) + ", " + Utils
@@ -437,23 +475,29 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mXOffSetDate = bounds.centerX() - timeDateLen / 2;
             canvas.drawText(date, mXOffSetDate, mYOffSetDate, mTextDatePaint);
 
-            if (mWeatherIcon != null) {
-
+            if (weatherId != -1) {
                 String highWithArrow = highArrow + high;
                 String lowWithArrow = lowArrow + low;
                 float tempTextLenHigh = mTextTempHighPaint.measureText(highWithArrow);
                 float tempTextLenLow = mTextTempLowPaint.measureText(lowWithArrow);
+                if (isInAmbientMode()) {
+                    // draw temp high low text
+                    mXOffSetWeather = bounds.centerX() - tempTextLenHigh / 2 - tempTextLenLow / 2;
+                    canvas.drawText(highWithArrow, mXOffSetWeather, mYOffSetWeather, mTextTempHighPaint);
+                    canvas.drawText(lowWithArrow, mXOffSetWeather + tempTextLenHigh + 2, mYOffSetWeather,
+                            mTextTempLowPaint);
+                } else {
+                    // draw weather icon
+                    mXOffsetIcon = bounds.centerX() - mWeatherIcon.getWidth() / 2 - 1 -
+                            tempTextLenHigh / 2 - tempTextLenLow / 2;
+                    canvas.drawBitmap(mWeatherIcon, mXOffsetIcon, mYOffSetWeather - mWeatherIcon.getHeight(), null);
 
-                // draw weather icon
-                mXOffsetIcon = bounds.centerX() - mWeatherIcon.getWidth() / 2 - 1 -
-                        tempTextLenHigh / 2 - tempTextLenLow / 2;
-                canvas.drawBitmap(mWeatherIcon, mXOffsetIcon, mYOffSetWeather - mWeatherIcon.getHeight(), null);
-
-                // draw temp high low text
-                mXOffSetWeather = mXOffsetIcon + mWeatherIcon.getWidth() + 2;
-                canvas.drawText(highWithArrow, mXOffSetWeather, mYOffSetWeather, mTextTempHighPaint);
-                canvas.drawText(lowWithArrow, mXOffSetWeather + tempTextLenHigh + 2, mYOffSetWeather,
-                        mTextTempLowPaint);
+                    // draw temp high low text
+                    mXOffSetWeather = mXOffsetIcon + mWeatherIcon.getWidth() + 2;
+                    canvas.drawText(highWithArrow, mXOffSetWeather, mYOffSetWeather, mTextTempHighPaint);
+                    canvas.drawText(lowWithArrow, mXOffSetWeather + tempTextLenHigh + 2, mYOffSetWeather,
+                            mTextTempLowPaint);
+                }
             }
         }
 
