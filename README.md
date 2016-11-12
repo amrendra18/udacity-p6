@@ -64,6 +64,3 @@ License for the specific language governing permissions and limitations under
 the License.
 
 
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/amrendra18/udacity-p6/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
